@@ -1,0 +1,1 @@
+/app/backend/node_modules/@embedded-postgres/linux-arm64/native/bin/postgres "-D" "/app/.preview/pgdata" "-p" "5433" "-k" "/tmp" "-c" "listen_addresses=127.0.0.1"

@@ -1,0 +1,724 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT_ADMIN
+  READ_ONLY_ADMIN
+}
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum SessionKind {
+  PC
+  ADMIN
+}
+
+enum RequirementType {
+  BUY_LOOKING
+  SELL_OFFERING
+  RENT_LOOKING
+  RENT_OFFERING
+  LEASE_LOOKING
+  LEASE_OFFERING
+}
+
+enum RequirementStatus {
+  ACTIVE
+  ON_HOLD
+  FULFILLED
+  CLOSED
+}
+
+enum PropertyCategory {
+  RESIDENTIAL
+  COMMERCIAL
+  LAND
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  SOLD
+  RENTED
+  LEASED
+}
+
+enum TransactionKind {
+  SALE
+  RENT
+  LEASE
+}
+
+enum DimensionUnit {
+  FEET
+  METERS
+}
+
+enum LinkStatus {
+  ACTIVE
+  UNLINKED
+}
+
+enum InterestLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum DealStage {
+  NEW
+  CONTACTED
+  INTERESTED
+  SITE_VISIT_SCHEDULED
+  SITE_VISIT_COMPLETED
+  NEGOTIATION
+  DOCUMENTATION
+  CLOSED
+  LOST
+}
+
+enum FollowUpType {
+  CALL
+  WHATSAPP
+  SITE_VISIT
+  MEETING
+  OTHER
+}
+
+enum FollowUpStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum NotificationType {
+  UPCOMING_FOLLOW_UP
+  DUE_FOLLOW_UP
+  MISSED_FOLLOW_UP
+  SITE_VISIT
+  PROPERTY_SHARED
+  PROPERTY_MATCH
+  DEAL_STAGE_UPDATE
+  SYSTEM
+}
+
+enum NotificationStatus {
+  PENDING
+  DELIVERED
+  READ
+  CANCELLED
+  FAILED
+}
+
+enum ShareTarget {
+  CLIENT
+  PC
+}
+
+enum SharePermission {
+  VIEW_ONLY
+}
+
+enum ShareChannel {
+  IN_APP
+  WHATSAPP
+}
+
+enum ShareStatus {
+  SENT
+  VIEWED
+  REVOKED
+}
+
+enum BinStatus {
+  IN_BIN
+  RESTORED
+  PURGED
+}
+
+model Counter {
+  name  String @id
+  value Int    @default(0)
+}
+
+model User {
+  id          String     @id @default(cuid())
+  pcCode      String     @unique
+  phone       String     @unique
+  name        String     @default("")
+  email       String?
+  status      UserStatus @default(ACTIVE)
+  onboarded   Boolean    @default(false)
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  profile        PCProfile?
+  sessions       Session[]
+  clients        Client[]
+  requirements   Requirement[]
+  properties     Property[]
+  links          PropertyClient[]
+  deals          Deal[]
+  followUps      FollowUp[]
+  notifications  Notification[]    @relation("NotificationRecipient")
+  sharesSent     PropertyShare[]   @relation("ShareSender")
+  sharesReceived PropertyShare[]   @relation("ShareReceiver")
+  activities     ActivityLog[]
+  savedSearches  SavedSearch[]
+  statusChanges  PCStatusChange[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PCProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  companyName      String?
+  reraNumber       String?
+  officeAddress    String?
+  photoUrl         String?
+  whatsappNumber   String?
+  areasOfOperation String[] @default([])
+  companyWebsite   String?
+  gstNumber        String?
+  settings         Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PCStatusChange {
+  id         String     @id @default(cuid())
+  userId     String
+  adminId    String?
+  fromStatus UserStatus
+  toStatus   UserStatus
+  reason     String?
+  createdAt  DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin      AdminUser? @relation(fields: [adminId], references: [id])
+
+  @@index([userId])
+}
+
+model Session {
+  id        String      @id @default(cuid())
+  kind      SessionKind
+  userId    String?
+  adminId   String?
+  ip        String?
+  userAgent String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime    @default(now())
+  user      User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin     AdminUser?  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([adminId])
+}
+
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model AdminUser {
+  id               String      @id @default(cuid())
+  email            String      @unique
+  name             String
+  passwordHash     String
+  role             AdminRole   @default(READ_ONLY_ADMIN)
+  status           AdminStatus @default(ACTIVE)
+  twoFactorEnabled Boolean     @default(false)
+  twoFactorSecret  String?
+  failedAttempts   Int         @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  sessions      Session[]
+  auditLogs     AdminAuditLog[]
+  statusChanges PCStatusChange[]
+}
+
+model Permission {
+  key         String           @id
+  description String
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  role          AdminRole
+  permissionKey String
+  permission    Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@id([role, permissionKey])
+}
+
+model AdminLoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String?
+  userAgent String?
+  success   Boolean
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}
+
+model AdminAuditLog {
+  id              String    @id @default(cuid())
+  adminId         String?
+  action          String
+  entityType      String?
+  entityId        String?
+  entityCode      String?
+  requirementCode String?
+  affectedPcId    String?
+  ip              String?
+  userAgent       String?
+  before          Json?
+  after           Json?
+  createdAt       DateTime  @default(now())
+  admin           AdminUser? @relation(fields: [adminId], references: [id])
+
+  @@index([createdAt])
+  @@index([adminId])
+  @@index([entityType, entityId])
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  ownerId   String
+  name      String
+  phone     String
+  location  String
+  email     String?
+  notes     String?
+  isHot     Boolean   @default(false)
+  status    String    @default("ACTIVE")
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  owner        User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  requirements Requirement[]
+  links        PropertyClient[]
+  deals        Deal[]
+  followUps    FollowUp[]
+  shares       PropertyShare[]
+
+  @@index([ownerId, deletedAt])
+  @@index([phone])
+}
+
+model Requirement {
+  id                String            @id @default(cuid())
+  code              String            @unique
+  ownerId           String
+  clientId          String
+  type              RequirementType
+  category          PropertyCategory
+  subCategory       String?
+  subtype           String?
+  location          String
+  locality          String?
+  bhk               Int?
+  bathrooms         Int?
+  area              Float?
+  dimLength         Float?
+  dimWidth          Float?
+  dimUnit           DimensionUnit     @default(FEET)
+  amountMin         Float?
+  amount            Float?
+  deposit           Float?
+  leasePeriodMonths Int?
+  availableDate     DateTime?
+  facing            String?
+  floor             Int?
+  totalFloors       Int?
+  furnishing        String?
+  propertyAge       String?
+  parking           String?
+  amenities         String[]          @default([])
+  khata             String?
+  transactionType   String?
+  availability      String?
+  otherRequirements String?
+  status            RequirementStatus @default(ACTIVE)
+  deletedAt         DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  owner     User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  client    Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  links     PropertyClient[]
+  deals     Deal[]
+  followUps FollowUp[]
+
+  @@index([ownerId, deletedAt])
+  @@index([clientId])
+}
+
+model Property {
+  id            String           @id @default(cuid())
+  code          String           @unique
+  ownerId       String
+  title         String?
+  category      PropertyCategory
+  subCategory   String?
+  subtype       String
+  location      String
+  locality      String?
+  address       String?
+  facing        String?
+  area          Float?
+  builtUpArea   Float?
+  carpetArea    Float?
+  plotArea      Float?
+  bhk           Int?
+  bathrooms     Int?
+  balcony       Int?
+  parking       String?
+  floor         Int?
+  totalFloors   Int?
+  furnishing    String?
+  propertyAge   String?
+  amenities     String[]         @default([])
+  dimLength     Float?
+  dimWidth      Float?
+  dimUnit       DimensionUnit    @default(FEET)
+  khata         String?
+  otherFeatures String?
+  status        PropertyStatus   @default(ACTIVE)
+  deletedAt     DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  owner        User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  transactions PropertyTransaction[]
+  photos       PropertyPhoto[]
+  links        PropertyClient[]
+  deals        Deal[]
+  followUps    FollowUp[]
+  shares       PropertyShare[]
+
+  @@index([ownerId, deletedAt])
+  @@index([category])
+  @@index([location])
+}
+
+model PropertyTransaction {
+  id                String          @id @default(cuid())
+  propertyId        String
+  kind              TransactionKind
+  salePrice         Float?
+  rentAmount        Float?
+  leaseAmount       Float?
+  depositAmount     Float?
+  leasePeriodMonths Int?
+  availableDate     DateTime?
+  status            String          @default("ACTIVE")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  property          Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, kind])
+}
+
+model PropertyPhoto {
+  id         String   @id @default(cuid())
+  propertyId String
+  url        String
+  storageKey String
+  mimeType   String
+  size       Int
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, position])
+}
+
+model PropertyClient {
+  id            String        @id @default(cuid())
+  ownerId       String
+  clientId      String
+  propertyId    String
+  requirementId String
+  status        LinkStatus    @default(ACTIVE)
+  interestLevel InterestLevel @default(MEDIUM)
+  dealStage     DealStage     @default(NEW)
+  notes         String?
+  dealValue     Float?
+  commission    Float?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  requirement Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  deals       Deal[]
+
+  @@unique([requirementId, propertyId])
+  @@index([ownerId])
+  @@index([propertyId])
+  @@index([clientId])
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  code              String    @unique
+  ownerId           String
+  clientId          String
+  propertyId        String
+  requirementId     String
+  linkId            String?
+  stage             DealStage @default(NEW)
+  dealValue         Float?
+  commissionPercent Float?
+  commissionFixed   Float?
+  expectedCommission Float?
+  finalCommission   Float?
+  closingDate       DateTime?
+  lossReason        String?
+  notes             String?
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  owner       User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  client      Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  property    Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  requirement Requirement        @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  link        PropertyClient?    @relation(fields: [linkId], references: [id], onDelete: SetNull)
+  history     DealStageHistory[]
+  followUps   FollowUp[]
+
+  @@index([ownerId, deletedAt])
+  @@index([stage])
+}
+
+model DealStageHistory {
+  id        String     @id @default(cuid())
+  dealId    String
+  fromStage DealStage?
+  toStage   DealStage
+  note      String?
+  changedBy String?
+  createdAt DateTime   @default(now())
+  deal      Deal       @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+}
+
+model FollowUp {
+  id              String         @id @default(cuid())
+  code            String         @unique
+  ownerId         String
+  clientId        String
+  requirementId   String?
+  propertyId      String?
+  dealId          String?
+  scheduledAt     DateTime
+  type            FollowUpType
+  notes           String?
+  reminderMinutes Int            @default(30)
+  status          FollowUpStatus @default(SCHEDULED)
+  outcome         String?
+  completedAt     DateTime?
+  rescheduleCount Int            @default(0)
+  deletedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  requirement   Requirement?   @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  property      Property?      @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  deal          Deal?          @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  notifications Notification[]
+
+  @@index([ownerId, scheduledAt])
+  @@index([status])
+}
+
+model Notification {
+  id            String             @id @default(cuid())
+  code          String             @unique
+  recipientId   String
+  type          NotificationType
+  title         String
+  body          String
+  channel       String             @default("IN_APP")
+  status        NotificationStatus @default(PENDING)
+  clientId      String?
+  requirementId String?
+  propertyId    String?
+  dealId        String?
+  followUpId    String?
+  link          String?
+  scheduledFor  DateTime           @default(now())
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  createdAt     DateTime           @default(now())
+
+  recipient User      @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  followUp  FollowUp? @relation(fields: [followUpId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, status, scheduledFor])
+  @@index([status, scheduledFor])
+}
+
+model PropertyShare {
+  id            String          @id @default(cuid())
+  propertyId    String
+  senderId      String
+  targetType    ShareTarget
+  receiverId    String?
+  receiverPhone String
+  clientId      String?
+  permission    SharePermission @default(VIEW_ONLY)
+  channel       ShareChannel    @default(IN_APP)
+  status        ShareStatus     @default(SENT)
+  message       String?
+  createdAt     DateTime        @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  sender   User     @relation("ShareSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User?    @relation("ShareReceiver", fields: [receiverId], references: [id], onDelete: SetNull)
+  client   Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+  @@index([receiverId])
+}
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  userId          String?
+  adminId         String?
+  entityType      String
+  entityId        String
+  entityCode      String?
+  requirementId   String?
+  requirementCode String?
+  clientId        String?
+  propertyId      String?
+  dealId          String?
+  action          String
+  description     String
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([requirementId])
+  @@index([clientId])
+  @@index([propertyId])
+  @@index([dealId])
+}
+
+model BinItem {
+  id               String    @id @default(cuid())
+  entityType       String
+  entityId         String
+  entityCode       String?
+  label            String
+  ownerId          String?
+  deletedById      String?
+  deletedByType    String
+  reason           String?
+  snapshot         Json      @default("{}")
+  status           BinStatus @default(IN_BIN)
+  deletedAt        DateTime  @default(now())
+  restoredAt       DateTime?
+  purgedAt         DateTime?
+
+  @@index([ownerId, status])
+  @@index([entityType, entityId])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  city      String
+  area      String
+  locality  String   @default("")
+  pincode   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([city, area, locality])
+  @@index([area])
+}
+
+model Amenity {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  entity    String
+  query     Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProviderConfig {
+  id        String   @id @default(cuid())
+  kind      String   @unique
+  provider  String
+  enabled   Boolean  @default(true)
+  config    Json     @default("{}")
+  secretEnv String[] @default([])
+  updatedAt DateTime @updatedAt
+}
+
+model SystemSetting {
+  key       String   @id
+  category  String
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}

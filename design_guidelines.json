@@ -1,0 +1,146 @@
+{
+  "project_name": "Property Consultant CRM & Super Admin Platform",
+  "design_philosophy": {
+    "pc_crm_app": "CRED-level mobile-first elegance. Clean, light white background with deep midnight navy (#0A192F / #0F172A) and vibrant cobalt blue (#2563EB / #1D4ED8) accents. Crisp card structures, soft elevated shadows, smooth micro-interactions, precise INR formatting (₹1.25 Cr, ₹85 L), rounded edges, and high readability optimized for 360-412px viewports as well as tablet/desktop viewports.",
+    "super_admin_app": "Enterprise SaaS Command Center. Desktop-first dark navy slate sidebar (#0B132B / #1E293B) paired with a clean slate content area (#F8FAFC). Dense, high-visibility data tables, clear status indicators, robust filter toolbars, detail tabs, and strict confirmation dialogs (e.g. typing 'DELETE PERMANENTLY')."
+  },
+  "typography": {
+    "font_family_primary": "Plus Jakarta Sans, sans-serif",
+    "font_family_mono": "JetBrains Mono, monospace",
+    "google_fonts_url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+    "scale": {
+      "h1_hero": "text-3xl sm:text-4xl font-extrabold tracking-tight",
+      "h2_section": "text-xl sm:text-2xl font-bold tracking-tight",
+      "h3_card_header": "text-lg font-semibold tracking-tight",
+      "h4_sub_header": "text-base font-semibold",
+      "body": "text-sm sm:text-base font-normal leading-relaxed",
+      "caption": "text-xs font-medium text-slate-500",
+      "badge": "text-[11px] font-bold tracking-wider uppercase"
+    }
+  },
+  "colors": {
+    "pc_crm": {
+      "background_page": "#F8FAFC",
+      "background_card": "#FFFFFF",
+      "primary_navy": "#0F172A",
+      "primary_blue": "#2563EB",
+      "primary_blue_hover": "#1D4ED8",
+      "accent_sky": "#E0F2FE",
+      "accent_green_shared": "#10B981",
+      "accent_green_bg": "#ECFDF5",
+      "accent_amber_pending": "#F59E0B",
+      "accent_rose_hot": "#EF4444",
+      "border_light": "#E2E8F0",
+      "text_main": "#0F172A",
+      "text_muted": "#64748B",
+      "text_light": "#94A3B8"
+    },
+    "super_admin": {
+      "sidebar_bg": "#0B132B",
+      "sidebar_text": "#E2E8F0",
+      "sidebar_active": "#1D4ED8",
+      "sidebar_hover": "rgba(255, 255, 255, 0.08)",
+      "page_bg": "#F1F5F9",
+      "card_bg": "#FFFFFF",
+      "header_bg": "#FFFFFF",
+      "table_header_bg": "#F8FAFC",
+      "table_row_hover": "#F1F5F9",
+      "text_primary": "#0F172A",
+      "text_secondary": "#475569",
+      "border": "#E2E8F0"
+    }
+  },
+  "spacing_and_layout": {
+    "pc_crm": {
+      "max_width_mobile": "max-w-md mx-auto",
+      "padding_container": "px-4 py-3 sm:px-6",
+      "card_radius": "rounded-2xl",
+      "card_border": "border border-slate-200/80 shadow-sm hover:shadow-md transition-all",
+      "bottom_nav_height": "h-16",
+      "top_header_height": "h-14"
+    },
+    "super_admin": {
+      "sidebar_width": "w-64",
+      "top_nav_height": "h-16",
+      "padding_content": "p-6 lg:p-8",
+      "card_radius": "rounded-xl",
+      "card_border": "border border-slate-200 shadow-sm"
+    }
+  },
+  "image_urls": {
+    "properties": [
+      {
+        "url": "https://images.unsplash.com/photo-1600555179901-107bf80d25cf?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "title": "Sobha Royal Pavilion - 3BHK Luxury Highrise, HSR Layout",
+        "category": "Residential"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1708067077797-74f83eaa8231?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "title": "Prestige Tech Park Villa View - Whitefield",
+        "category": "Residential"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1719416177005-f85fae63ac15?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "title": "Kingfisher Tower Penthouse - UB City, Central Bengaluru",
+        "category": "Commercial/Penthouse"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1564078516393-cf04bd966897?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "title": "Luxury Apartment Living Interior - Indiranagar",
+        "category": "Interior"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "title": "Modern Commercial Office Space - Outer Ring Road",
+        "category": "Commercial"
+      }
+    ],
+    "avatars": [
+      {
+        "url": "https://images.unsplash.com/photo-1569779213435-ba3167dde7cc?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "name": "Rajesh Sharma",
+        "role": "Senior Broker"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "name": "Vikram Patel",
+        "role": "Property Consultant"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1609436132311-e4b0c9370469?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "name": "Ananya Rao",
+        "role": "HNI Client"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600878459138-e1123b37cb30?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "name": "Kiran Hegde",
+        "role": "Super Admin"
+      }
+    ]
+  },
+  "key_component_guidelines": {
+    "pc_crm": {
+      "login_otp": "Mobile phone input with +91 prefix, 6-digit auto-advancing OTP input fields, resend timer, clean CRED-style card container.",
+      "onboarding_slides": "Full-bleed carousel with swipe support, clean typography, indicator dots, skip & next CTA, setting up broker workspace.",
+      "dashboard_kpis": "Horizontal scroll / 2x2 grid stats: Properties, Clients, Follow-ups Today, Potential Deal Value (₹ Cr), Potential Commission (₹ L). Micro sparkline trends.",
+      "property_cards": "Top green pill badge 'SHARED' when co-brokered, PROP-000001 formatted IDs, high-res thumbnail, title, BHK/sqft, location tag (e.g. Indiranagar, Bengaluru), price in INR (e.g., ₹2.40 Cr), action icons for Share & Match.",
+      "client_cards": "REQ-000001 sub-cards showing requirements (Budget, Preferred Locations, Property Subtype, Timeline), match badge '94% MATCH' with popup/drawer listing key reasons (e.g. Budget matches, Location within 2km, Ready to Move).",
+      "deals_kanban": "Stages: NEW → CONTACTED → SITE_VISIT → NEGOTIATION → CLOSED_WON → CLOSED_LOST. Drag/tap move, showing deal amount & estimated commission (₹).",
+      "follow_ups": "Segmented by CALL / WHATSAPP / SITE_VISIT / MEETING with quick reschedule modal, outcome logger, and direct WhatsApp trigger.",
+      "top_avatar_menu": "Avatar click opens smooth bottom sheet / overlay menu: My Profile, Company Details, Settings, Notifications, Bin, Activity Logs, Help, Logout."
+    },
+    "super_admin": {
+      "sidebar_nav": "Dark navy container (#0B132B) with logo top, clear item states (active blue background #1D4ED8 with white text, inactive slate #94A3B8 with hover white text), badges for counts.",
+      "data_tables": "Sticky table header, sorting columns, pagination, bulk selection, search & multi-select filters, quick status toggles.",
+      "confirmation_modal": "Dangerous actions (e.g. Permanent Delete) require explicit input typing 'DELETE PERMANENTLY' in an input field before button enables."
+    }
+  },
+  "data_testid_rules": "All interactive elements (buttons, inputs, links, tabs, dropdowns, table rows, cards) MUST contain unique kebab-case data-testid attributes (e.g., data-testid='login-mobile-input', data-testid='otp-submit-btn', data-testid='property-card-PROP-000001', data-testid='delete-permanently-confirm-btn').",
+  "instructions_to_main_agent": [
+    "Ensure both PC CRM and Super Admin apps are fully functional and well-connected to the shared state/backend.",
+    "Strictly follow the INR formatting helper function formatINR(amount) e.g., format 12500000 as ₹1.25 Cr and 850000 as ₹85 L.",
+    "Use data-testid attributes on all buttons, forms, list items, search inputs, and modal triggers.",
+    "Do NOT use complete transparent backgrounds for headers, overlays, or dropdown menus — always use solid or glassmorphism backgrounds (e.g., bg-white/95 backdrop-blur-md or bg-slate-900).",
+    "Keep mobile PC CRM layout crisp, touch-friendly, and responsive up to desktop resolution."
+  ]
+}
