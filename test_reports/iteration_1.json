@@ -1,0 +1,42 @@
+{
+  "summary": "Backend + frontend testing of Property Consultant CRM. Executed existing vitest suite (14/14 pass) and new comprehensive pytest regression (/app/backend/tests/propcrm_api_test.py, 33/33 pass) covering PC auth, clients, requirements (unique REQ codes + isolated edits), properties with transactions/dimensions, requirement matches, link + deal lifecycle (NEW -> NEGOTIATION -> CLOSED w/ commission), follow-ups create/reschedule/complete, property share (registered PC + unregistered -> WhatsApp hint), bin delete + restore preserving code, dashboard/analytics/global search, admin login (SUPER_ADMIN & READ_ONLY), admin dashboard, PCs list/detail, suspend+confirm/activate flow (verified 403 on OTP while suspended, 200 after reactivate), admin global search, locations/amenities CRUD, viewer RBAC (403 on suspend, 200 on dashboard), bin purge with confirmText 'DELETE PERMANENTLY', and cross-PC isolation (PC B cannot read PC A's client/requirement; PC B seeing shared property receives access=VIEW_ONLY with links/deals stripped). Frontend validated: PC login (phone + OTP + rate-limit error UI), onboarding 4-slide wizard with Skip + Next, dashboard with stats and 5-item bottom-nav (Home/Properties/Clients/Followups/Deals), navigation across tabs; Admin app login, dashboard metrics, PCs list showing both PCs ACTIVE, global search input, side nav for Clients/Properties/Requirements/Deals/Follow-ups/Notifications/Analytics/Activity Logs/Bin/Locations/Amenities/System Settings/Admin Users.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/v1/auth/send-otp & /verify-otp", "issue": "otpLimiter is tight (10 requests/10min per IP+phone) plus DB-count 5/10min; makes automated end-to-end testing from a single IP fragile. For a dev environment consider raising the window for localhost/preview or exempting mock-OTP provider."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PC login (mobile)", "issues": ["Rate-limit error message appears but field keeps red invalid style even after text correction until next submit - minor UX nit"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/propcrm_api_test.py",
+    "/app/backend/tests/api.test.ts",
+    "/app/test_reports/pytest/propcrm_results.xml"
+  ],
+  "action_items": [
+    "No blocking fixes required. Optional: relax OTP rate-limit in dev/preview to reduce test flakiness; current limiter blocks repeated automation runs for ~10 min per phone number."
+  ],
+  "critical_code_review_comments": [
+    "pc.ts GET /properties/:id correctly implements VIEW_ONLY shared-access by stripping links/deals and marking isShared - good scoping. Verified via test_61.",
+    "Admin PATCH /pcs/:id/status enforces 'confirm' flag only when moving to SUSPENDED/DEACTIVATED - correct; viewer READ_ONLY_ADMIN gets 403 via requirePerm('pcs:status') - verified.",
+    "Bin restore preserves entityCode (requirement REQ-xxxxxx retained after delete->restore) - verified.",
+    "Requirement codes auto-generated server-side; three sequential creates return 3 unique codes - verified.",
+    "Property share endpoint returns {registered:true, share:{...}, whatsappUrl, message} for both registered + unregistered receivers - consistent shape, good.",
+    "OTP rate-limit response (429) is surfaced in UI with friendly 'Too many OTP requests. Try again in a few minutes.' - good."
+  ],
+  "updated_files": [
+    "/app/backend/tests/propcrm_api_test.py (new)"
+  ],
+  "success_rate": {"backend": "100% (33/33 pytest + 14/14 vitest)", "frontend": "100% of flows attempted (login, onboarding, dashboard, nav, admin dashboard/PCs/search)"},
+  "test_credentials": "PC phones 9876543210 (PC A, Arjun), 9123456780 (PC B, Priya), OTP 123456. Admin crazycoder117@gmail.com / Admin@12345 (SUPER_ADMIN); viewer@propcrm.local / Admin@12345 (READ_ONLY_ADMIN). New phones self-register.",
+  "seed_data_creation": "Each test run creates several TEST_* clients/requirements/properties/deals/follow-ups under PC A (9876543210); test_79 creates and purges a TEST_PurgeMe client. All owned by PC A, no modification of seeded fixtures. OTP rate counters are the only shared/global state touched.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend is Node (not FastAPI); /app/backend/server.py is a proxy shim to Node on :4000 (logs /var/log/supervisor/node-api.log). API base: {REACT_APP_BACKEND_URL}/api/v1; admin under /api/v1/admin. pytest.ini has `-n 2 --dist loadscope` baked in and must not be changed; backend_test is a single ordered TestPropCRM class so all tests share one worker + state dict. OTP endpoint is rate-limited 10/10min per IP+phone and additionally 5/10min via DB count; reuse tokens or wait ~5-10 min between runs. propcrm_api_test uses dates in 2027 for future follow-up scheduling since current date is Oct 2026.",
+  "rca_of_issue": "N/A - no production bugs found. All features behaved per spec."
+}

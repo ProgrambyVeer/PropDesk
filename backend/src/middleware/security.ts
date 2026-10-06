@@ -13,7 +13,8 @@ const limiter = (windowMs: number, limit: number, key?: (r: Request) => string) 
 });
 
 export const globalLimiter = limiter(60_000, 600);
-export const otpLimiter = limiter(10 * 60_000, 10, (r) => `${r.ip}:${String(r.body?.phone || '')}`);
+// Mock OTP in non-production: relaxed so local/E2E testing isn't blocked.
+export const otpLimiter = limiter(10 * 60_000, config.otpProvider === 'mock' && !config.isProd ? 200 : 10, (r) => `${r.ip}:${String(r.body?.phone || '')}`);
 export const adminLoginLimiter = limiter(15 * 60_000, 20, (r) => `${r.ip}:${String(r.body?.email || '').toLowerCase()}`);
 
 export function notFoundHandler(_req: Request, res: Response) {

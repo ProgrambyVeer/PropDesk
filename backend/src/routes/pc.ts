@@ -39,7 +39,7 @@ pc.post('/auth/send-otp', otpLimiter, async (req, res) => {
   if (user && user.status !== 'ACTIVE') throw new AppError(403, `ACCOUNT_${user.status}`, user.status === 'SUSPENDED' ? 'Your account has been suspended. Please contact support.' : 'Your account has been deactivated.');
   if (!user && !(await getSetting<boolean>('auth.allowSelfSignup'))) throw forbidden('This number is not registered. Contact your administrator.');
   const recent = await prisma.otpCode.count({ where: { phone, createdAt: { gte: new Date(Date.now() - 10 * 60e3) } } });
-  if (recent >= 5 && !config.isTest) throw new AppError(429, 'RATE_LIMITED', 'Too many OTP requests. Try again in a few minutes.');
+  if (recent >= 5 && !config.isTest && (config.isProd || otpProvider.name !== 'mock')) throw new AppError(429, 'RATE_LIMITED', 'Too many OTP requests. Try again in a few minutes.');
   const code = otpProvider.generate();
   const ttl = await getSetting<number>('auth.otpExpirySeconds');
   await prisma.otpCode.create({ data: { phone, codeHash: hashOtp(phone, code), expiresAt: new Date(Date.now() + ttl * 1000) } });
