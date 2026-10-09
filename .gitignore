@@ -5,3 +5,5 @@ backend/uploads/
 .env
 !.env.example
 __pycache__/
+crm-source.zip
+project-download.zip
